@@ -119,7 +119,3 @@ This project is open source and available under the MIT License.
 ## 📧 Contact
 
 For questions or feedback, please open an issue on GitHub.
-
----
-
-**Note**: Remember to replace `YOUR_USERNAME` with your actual GitHub username after creating the repository.
