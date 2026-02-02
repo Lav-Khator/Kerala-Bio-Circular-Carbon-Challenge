@@ -25,7 +25,7 @@ A comprehensive solution for optimizing carbon management in Kerala's wastewater
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/kerala_carbon_challenge.git
+   git clone https://github.com/Lav-Khator/Kerala-Bio-Circular-Carbon-Challenge.git
    cd kerala_carbon_challenge
    ```
 
