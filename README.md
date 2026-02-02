@@ -103,19 +103,6 @@ An interactive web interface featuring:
 - Performance metrics
 - Historical trends
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## 🔗 Links
-
-- [Project Repository](https://github.com/YOUR_USERNAME/kerala_carbon_challenge)
-- [Issue Tracker](https://github.com/YOUR_USERNAME/kerala_carbon_challenge/issues)
-
 ## 📧 Contact
 
 For questions or feedback, please open an issue on GitHub.
