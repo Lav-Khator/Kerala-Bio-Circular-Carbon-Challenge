@@ -1,0 +1,9 @@
+@echo off
+echo Starting Kerala Carbon Challenge Dashboard...
+echo.
+echo Opening browser...
+start http://localhost:8000/dashboard_website/dashboard_beautiful.html
+echo.
+echo Starting local server...
+echo (Close this window to stop the dashboard)
+python -m http.server 8000

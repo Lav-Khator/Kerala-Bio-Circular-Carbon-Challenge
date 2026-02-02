@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kerala Biosolids Logistics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .metric-value.negative {
+            color: #f44336;
+        }
+
+        .gauge-container {
+            position: relative;
+            height: 80px;
+            margin: 10px 0;
+        }
+
+        .gauge-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #f44336);
+            transition: width 0.5s ease;
+            border-radius: 15px;
+        }
+
+        .gauge-label {
+            font-size: 11px;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        #map-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #map-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: rgba(76, 175, 80, 0.8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: rgba(76, 175, 80, 1);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .date-display {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .legend {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .speed-control input {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>📊 Dashboard</h1>
+
+            <div class="metric-card" style="background: rgba(76, 175, 80, 0.15); border-color: rgba(76, 175, 80, 0.4);">
+                <div class="metric-label" style="font-weight: bold; font-size: 14px; margin-bottom: 10px;">📊 KEY
+                    PERFORMANCE INDICATORS</div>
+
+                <div style="margin: 8px 0; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                    <div class="gauge-label" style="opacity: 0.9;">Net Carbon Credits</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #f44336;">-1,342,401 kg CO₂</div>
+                </div>
+
+                <div style="margin: 8px 0; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                    <div class="gauge-label" style="opacity: 0.9;">Nitrogen Precision</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #4CAF50;">102.67%</div>
+                </div>
+
+                <div style="margin: 8px 0; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                    <div class="gauge-label" style="opacity: 0.9;">Logistics Efficiency</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #2196F3;">0.0526 tons/km</div>
+                </div>
+
+                <div style="margin: 8px 0; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                    <div class="gauge-label" style="opacity: 0.9;">Rain-Lock Resilience</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #FFC107;">32.46%</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Current Date</div>
+                <div class="date-display" id="current-date">2025-01-01</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Cumulative Carbon Score</div>
+                <div class="metric-value negative" id="carbon-score">0</div>
+                <div class="gauge-label">kg CO₂ equivalent</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Total STP Storage</div>
+                <div class="gauge-container">
+                    <div class="gauge-bar">
+                        <div class="gauge-fill" id="storage-gauge" style="width: 0%"></div>
+                    </div>
+                    <div class="gauge-label">
+                        <span id="storage-value">0</span> / <span id="storage-max">0</span> tons
+                        (<span id="storage-percent">0</span>%)
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Today's Deliveries</div>
+                <div class="metric-value" id="daily-deliveries">0</div>
+                <div class="gauge-label">trucks dispatched</div>
+            </div>
+
+
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color"
+                        style="background: #f44336; border-radius: 0; clip-path: polygon(50% 0%, 0% 100%, 100% 100%);">
+                    </div>
+                    <span>STPs (Sewage Treatment)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4CAF50;"></div>
+                    <span>Farms (Active)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #666;"></div>
+                    <span>Farms (Rain-Locked)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2196F3; opacity: 0.5;"></div>
+                    <span>Delivery Route</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="map-container">
+                <canvas id="map-canvas"></canvas>
+            </div>
+
+            <div class="controls">
+                <button id="play-btn">▶ Play</button>
+                <button id="pause-btn" disabled>⏸ Pause</button>
+                <button id="reset-btn">⏮ Reset</button>
+                <button id="step-btn">⏭ Next Day</button>
+            </div>
+
+            <div class="speed-control">
+                <span>Speed:</span>
+                <input type="range" id="speed-slider" min="1" max="10" value="5">
+                <span id="speed-label">5x</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("=== Dashboard Starting ===");
+
+        let canvas, ctx;
+        let farms = [];
+        let stps = [];
+        let solution = [];
+        let weather = [];
+        let demand = [];
+        let dailyScores = []; // Pre-computed scores generated from precompute_scores.py
+        let currentDay = 0;
+        let isPlaying = false;
+        let animationInterval = null;
+        let speed = 5;
+        let cumulativeScore = 0;
+        let totalStorage = 0;
+        let maxStorage = 0;
+        let stpStorage = {};
+
+        async function init() {
+            console.log("1. Initializing canvas...");
+            canvas = document.getElementById('map-canvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            await loadData();
+            setupControls();
+            renderFrame();
+
+            console.log("=== Dashboard Ready ===");
+        }
+
+        function resizeCanvas() {
+            const container = document.getElementById('map-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            if (farms.length > 0) renderFrame();
+        }
+
+        async function loadData() {
+            try {
+                console.log("2. Loading CSV files...");
+
+                const [farmsResp, stpsResp, solResp, weatherResp, scoresResp] = await Promise.all([
+                    fetch('../data/farm_locations.csv'),
+                    fetch('../data/stp_registry.csv'),
+                    fetch('../solution/solution.csv'),
+                    fetch('../data/daily_weather_2025.csv'),
+                    fetch('../data/daily_scores.json')
+                ]);
+
+                const [farmsText, stpsText, solText, weatherText, scoresJson] = await Promise.all([
+                    farmsResp.text(),
+                    stpsResp.text(),
+                    solResp.text(),
+                    weatherResp.text(),
+                    scoresResp.json()
+                ]);
+
+                // Store pre-computed scores
+                dailyScores = scoresJson;
+                console.log(`   Loaded ${dailyScores.length} daily scores`);
+
+                // Parse farms
+                const farmsLines = farmsText.trim().split('\n');
+
+                farms = farmsLines.slice(1).map(line => {
+                    const parts = line.split(',');
+                    return {
+                        id: parts[0],
+                        zone: parts[1],
+                        area: parseFloat(parts[2]),
+                        lat: parseFloat(parts[3]),
+                        lon: parseFloat(parts[4])
+                    };
+                });
+                console.log(`   Loaded ${farms.length} farms`);
+
+                // Parse STPs
+                const stpsLines = stpsText.trim().split('\n');
+                stps = stpsLines.slice(1).map(line => {
+                    const parts = line.split(',');
+                    return {
+                        id: parts[0],
+                        lat: parseFloat(parts[3]),
+                        lon: parseFloat(parts[4]),
+                        maxStorage: parseFloat(parts[2]),
+                        dailyOutput: parseFloat(parts[1])
+                    };
+                });
+                maxStorage = stps.reduce((sum, stp) => sum + stp.maxStorage, 0);
+                console.log(`   Loaded ${stps.length} STPs`);
+
+                // Initialize STP storage tracking
+                stps.forEach(stp => {
+                    stpStorage[stp.id] = 0;
+                });
+
+                // Parse solution
+                const solLines = solText.trim().split('\n');
+                solution = solLines.slice(1)
+                    .map(line => {
+                        const parts = line.split(',');
+                        return {
+                            date: parts[1],
+                            stpId: parts[2],
+                            farmId: parts[3],
+                            tons: parseFloat(parts[4])
+                        };
+                    })
+                    .filter(s => s.tons > 0);
+                console.log(`   Loaded ${solution.length} deliveries`);
+
+                // Parse weather
+                const weatherLines = weatherText.trim().split('\n');
+                const headers = weatherLines[0].split(',');
+                weather = weatherLines.slice(1).map(line => {
+                    const parts = line.split(',');
+                    const obj = {};
+                    headers.forEach((h, i) => obj[h.trim()] = parts[i]);
+                    return obj;
+                });
+                console.log(`   Loaded ${weather.length} weather records`);
+
+                // Load demand data for proper scoring
+                const demandResp = await fetch('../data/daily_n_demand.csv');
+                const demandText = await demandResp.text();
+                const demandLines = demandText.trim().split('\n');
+                const demandHeaders = demandLines[0].split(',').map(h => h.trim());
+                demand = demandLines.slice(1).map(line => {
+                    if (!line.trim()) return null;
+                    const parts = line.split(',');
+                    const obj = {};
+                    demandHeaders.forEach((h, i) => {
+                        if (h) obj[h] = parts[i] ? parts[i].trim() : "0";
+                    });
+                    return obj;
+                }).filter(d => d);
+                console.log(`   Loaded ${demand.length} demand records`);
+                if (demand.length > 0) {
+                    console.log("   Sample demand keys:", Object.keys(demand[0]).slice(0, 5));
+                    console.log("   Sample demand date:", demand[0].date);
+                }
+                console.log(`   Loaded ${demand.length} demand records`);
+
+            } catch (error) {
+                console.error("ERROR loading data:", error);
+            }
+        }
+
+        function setupControls() {
+            document.getElementById('play-btn').onclick = play;
+            document.getElementById('pause-btn').onclick = pause;
+            document.getElementById('reset-btn').onclick = reset;
+            document.getElementById('step-btn').onclick = stepForward;
+
+            const speedSlider = document.getElementById('speed-slider');
+            speedSlider.oninput = (e) => {
+                speed = parseInt(e.target.value);
+                document.getElementById('speed-label').textContent = `${speed}x`;
+                if (isPlaying) {
+                    pause();
+                    play();
+                }
+            };
+        }
+
+        function play() {
+            if (isPlaying) return;
+            isPlaying = true;
+            document.getElementById('play-btn').disabled = true;
+            document.getElementById('pause-btn').disabled = false;
+
+            const interval = 1000 / speed;
+            animationInterval = setInterval(() => {
+                stepForward();
+                if (currentDay >= 365) pause();
+            }, interval);
+        }
+
+        function pause() {
+            isPlaying = false;
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = true;
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+        }
+
+        function reset() {
+            pause();
+            currentDay = 0;
+            cumulativeScore = 0;
+            totalStorage = 0;
+            // Reset STP storage tracking
+            stps.forEach(stp => {
+                stpStorage[stp.id] = 0;
+            });
+            renderFrame();
+        }
+
+        function stepForward() {
+            if (currentDay < 365) {
+                currentDay++;
+                renderFrame();
+            }
+        }
+
+        function renderFrame() {
+            const date = getDateFromIndex(currentDay);
+
+            // Clear canvas
+            ctx.fillStyle = '#0a1929';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const dayDeliveries = solution.filter(s => s.date === date);
+            const rainLockedZones = getRainLockedZones(date);
+
+            const lats = [...farms.map(f => f.lat), ...stps.map(s => s.lat)];
+            const lons = [...farms.map(f => f.lon), ...stps.map(s => s.lon)];
+            const bounds = {
+                minLat: Math.min(...lats),
+                maxLat: Math.max(...lats),
+                minLon: Math.min(...lons),
+                maxLon: Math.max(...lons)
+            };
+
+            // Draw grid lines and axes
+            drawGrid(bounds);
+
+            // Draw delivery routes (behind everything)
+            dayDeliveries.forEach(delivery => {
+                const stp = stps.find(s => s.id === delivery.stpId);
+                const farm = farms.find(f => f.id === delivery.farmId);
+                if (stp && farm) {
+                    const stpPos = latLonToCanvas(stp.lat, stp.lon, bounds);
+                    const farmPos = latLonToCanvas(farm.lat, farm.lon, bounds);
+                    const progress = (Date.now() % 1000) / 1000;
+                    const lineWidth = 1 + (delivery.tons / 10) * 3;
+
+                    ctx.beginPath();
+                    ctx.moveTo(stpPos.x, stpPos.y);
+                    ctx.lineTo(farmPos.x, farmPos.y);
+                    ctx.strokeStyle = `rgba(33, 150, 243, ${0.3 + progress * 0.4})`;
+                    ctx.lineWidth = lineWidth;
+                    ctx.stroke();
+
+                    // Animated truck
+                    const truckX = stpPos.x + (farmPos.x - stpPos.x) * progress;
+                    const truckY = stpPos.y + (farmPos.y - stpPos.y) * progress;
+                    ctx.beginPath();
+                    ctx.arc(truckX, truckY, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFC107';
+                    ctx.fill();
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            });
+
+            // Draw farms (improved styling)
+            farms.forEach(farm => {
+                const pos = latLonToCanvas(farm.lat, farm.lon, bounds);
+                const isRainLocked = rainLockedZones.includes(farm.zone);
+
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = isRainLocked ? '#666' : '#4CAF50';
+                ctx.fill();
+                ctx.strokeStyle = isRainLocked ? '#444' : '#2E7D32';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+
+            // Draw STPs (improved styling)
+            stps.forEach(stp => {
+                const pos = latLonToCanvas(stp.lat, stp.lon, bounds);
+
+                // Triangle
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y - 10);
+                ctx.lineTo(pos.x - 9, pos.y + 10);
+                ctx.lineTo(pos.x + 9, pos.y + 10);
+                ctx.closePath();
+                ctx.fillStyle = '#f44336';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Inner detail
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y + 2, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+            });
+
+            updateMetrics(date, dayDeliveries);
+        }
+
+        function drawGrid(bounds) {
+            const padding = 40;
+
+            // Draw subtle grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+
+            // Vertical grid lines (longitude)
+            for (let i = 0; i <= 4; i++) {
+                const x = padding + (i / 4) * (canvas.width - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, canvas.height - padding);
+                ctx.stroke();
+            }
+
+            // Horizontal grid lines (latitude)
+            for (let i = 0; i <= 4; i++) {
+                const y = padding + (i / 4) * (canvas.height - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+
+            // Draw axis labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'center';
+
+            // Longitude labels (bottom)
+            for (let i = 0; i <= 4; i++) {
+                const lon = bounds.minLon + (i / 4) * (bounds.maxLon - bounds.minLon);
+                const x = padding + (i / 4) * (canvas.width - 2 * padding);
+                ctx.fillText(lon.toFixed(2) + '°E', x, canvas.height - 20);
+            }
+
+            // Latitude labels (left)
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const lat = bounds.minLat + (i / 4) * (bounds.maxLat - bounds.minLat);
+                const y = canvas.height - padding - (i / 4) * (canvas.height - 2 * padding);
+                ctx.fillText(lat.toFixed(2) + '°N', padding - 10, y + 4);
+            }
+
+            // Axis titles
+            ctx.font = 'bold 12px Segoe UI';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.textAlign = 'center';
+            ctx.fillText('Longitude', canvas.width / 2, canvas.height - 5);
+
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Latitude', 0, 0);
+            ctx.restore();
+        }
+
+        function latLonToCanvas(lat, lon, bounds) {
+            const padding = 40;
+            const x = padding + ((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon)) * (canvas.width - 2 * padding);
+            const y = canvas.height - padding - ((lat - bounds.minLat) / (bounds.maxLat - bounds.minLat)) * (canvas.height - 2 * padding);
+            return { x, y };
+        }
+
+        function getRainLockedZones(date) {
+            const rainLocked = [];
+            const weatherRow = weather.find(w => w.date === date);
+            if (weatherRow) {
+                // Check each zone for heavy rain (>30mm)
+                // Zone names match the CSV columns: Kuttanad, Palakkad, Highlands, Coastal
+                ['Kuttanad', 'Palakkad', 'Highlands', 'Coastal'].forEach(zone => {
+                    const rainfall = parseFloat(weatherRow[zone] || 0);
+                    if (rainfall > 30) {
+                        rainLocked.push(zone);
+                    }
+                });
+            }
+            return rainLocked;
+        }
+
+        function updateMetrics(date, rawDeliveries) {
+            document.getElementById('current-date').textContent = date;
+            document.getElementById('daily-deliveries').textContent = rawDeliveries.length;
+
+            // Use pre-computed authoritative score for this date
+            // This ensures exact match with performance_metrics.py (-1.3M)
+            const scoreEntry = dailyScores.find(s => s.date === date);
+            if (scoreEntry) {
+                cumulativeScore = scoreEntry.score;
+            }
+
+            document.getElementById('carbon-score').textContent = Math.round(cumulativeScore).toLocaleString();
+
+            const dailyTons = rawDeliveries.reduce((sum, d) => sum + d.tons, 0);
+
+            // Add daily production to STP storage
+            stps.forEach(stp => {
+                stpStorage[stp.id] += stp.dailyOutput;
+            });
+
+            // Subtract deliveries from STP storage
+            rawDeliveries.forEach(delivery => {
+                stpStorage[delivery.stpId] -= delivery.tons;
+            });
+
+            // Calculate overflow for visual gauge only (score penalty is already in pre-computed score)
+            stps.forEach(stp => {
+                if (stpStorage[stp.id] > stp.maxStorage) {
+                    stpStorage[stp.id] = stp.maxStorage; // Reset logic mimics python
+                }
+            });
+
+            // Update STP storage UI
+            const dailyProduction = stps.reduce((sum, s) => sum + s.dailyOutput, 0);
+            totalStorage = totalStorage + dailyProduction - dailyTons;
+            totalStorage = Math.max(0, Math.min(maxStorage, totalStorage));
+
+            const storagePercent = (totalStorage / maxStorage) * 100;
+            document.getElementById('storage-value').textContent = Math.round(totalStorage);
+            document.getElementById('storage-max').textContent = Math.round(maxStorage);
+            document.getElementById('storage-percent').textContent = Math.round(storagePercent);
+            document.getElementById('storage-gauge').style.width = `${Math.min(100, storagePercent)}%`;
+        }
+
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function getDateFromIndex(index) {
+            const start = new Date('2025-01-01');
+            const current = new Date(start);
+            current.setDate(start.getDate() + index);
+            return current.toISOString().split('T')[0];
+        }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>
